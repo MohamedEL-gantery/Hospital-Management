@@ -61,7 +61,7 @@ class DoctorController {
       if (req.file) {
         const imagePath = path.join(
           __dirname,
-          `../public/images/${req.file.filename}`
+           `../upload/images${req.file.filename}`
         );
         const uploadPhoto = await cloudinaryUploadSingleImag(imagePath);
         photo = uploadPhoto.secure_url;

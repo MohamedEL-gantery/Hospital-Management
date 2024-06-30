@@ -2,13 +2,9 @@ import path from 'path';
 import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '../db';
-import { User } from '../entity/user';
 import userService from './user.service';
 import CustomRequest from './../interfaces/customRequest';
 import { cloudinaryUploadSingleImag } from '../utils/cloudinary';
-
-const userRepository = AppDataSource.getRepository(User);
 
 class UserController {
   getMe = (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +43,7 @@ class UserController {
       if (req.file) {
         const imagePath = path.join(
           __dirname,
-          `../public/images/${req.file.filename}`
+          `../upload/images${req.file.filename}`
         );
         const uploadPhoto = await cloudinaryUploadSingleImag(imagePath);
         photo = uploadPhoto.secure_url;
