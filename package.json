@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "build": "npx tsc --build",
+    "build": "npx tsc --build && node ./dist/server.js",
     "start": "node ./dist/server.js",
     "debug": "nodemon --inspect ./dist/server.js",
     "start:dev": "nodemon ./src/server.ts",
