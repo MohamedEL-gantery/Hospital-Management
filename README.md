@@ -1,6 +1,6 @@
 ![Node.js](https://img.shields.io/badge/Node.js-20.11.0-green?logo=node.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue?logo=typescript)
-![TypeORM](https://img.shields.io/badge/TypeORM-YourVersionHere-3178C6?logo=typeorm&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-0.3.20-3178C6?logo=typeorm&logoColor=white)
 
 # Quick Start Node.js Project with TypeScript and TypeORM
 
@@ -70,21 +70,21 @@ The project follows this directory structure:
 
 - Database Integration: Use TypeORM for database management with PostgreSQL.
 
--CRUD Operations: Implement CRUD operations for managing hospital data.
+- CRUD Operations: Implement CRUD operations for managing hospital data.
 
--Error Handling: Implement centralized error handling middleware.
+- Error Handling: Implement centralized error handling middleware.
 
--Validation: Implement input validation using class-validator and Joi.
+- Validation: Implement input validation using class-validator and Joi.
 
--Reviews: Implement endpoints and logic for hospital reviews. 
+- Reviews: Implement endpoints and logic for hospital reviews. 
 
--Payments: Integrate payment gateway and implement payment processing.
+- Payments: Integrate payment gateway and implement payment processing.
 
  
 
 ## View API Documentation
 
--API Documentation: Document APIs using Postman.
+- API Documentation: Document APIs using Postman.
 
  ```bash
  https://documenter.getpostman.com/view/23762643/2sA3duHDhy
