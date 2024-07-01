@@ -16,26 +16,37 @@ import { User } from './entity/user';
 import { UserDependent } from './entity/userDependent';
 import { UserWishlist } from './entity/userWishlist';
 import { Review } from './entity/review';
-import {Hospital1719766323186}from './migrations/1719766323186-hospital'
+import { Hospital1719766323186 } from './migrations/1719766323186-hospital';
 
 import dotenv from 'dotenv';
 dotenv.config();
 
-// const isProduction = process.env.NODE_ENV === 'production';
-
-// const entitiesPath = isProduction ? 'dist/entity/**/*.js' : 'src/entity/**/*.ts';
-// const migrationsPath = isProduction ? 'dist/migrations/**/*.js' : 'src/migrations/**/*.ts';
-
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.HOST ,
+  host: process.env.HOST,
   port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER ,
-  password: process.env.DB_PASSWORD ,
-  database: process.env.DB ,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB,
   synchronize: false,
   logging: false,
-  entities: [Blog,Booking,ContactUs,Cart,Category,Doctor,DoctorAwards,DoctorClinicPhoto,DoctorEducation,DoctorExperience,Calender,User,UserDependent,UserWishlist,Review],
+  entities: [
+    Blog,
+    Booking,
+    ContactUs,
+    Cart,
+    Category,
+    Doctor,
+    DoctorAwards,
+    DoctorClinicPhoto,
+    DoctorEducation,
+    DoctorExperience,
+    Calender,
+    User,
+    UserDependent,
+    UserWishlist,
+    Review,
+  ],
   migrations: [Hospital1719766323186],
   subscribers: [],
 });
