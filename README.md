@@ -1,6 +1,6 @@
 ![Node.js](https://img.shields.io/badge/Node.js-20.11.0-green?logo=node.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue?logo=typescript)
-![TypeORM](https://img.shields.io/badge/TypeORM-0.3.20-3178C6?logo=typeorm&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-0.3.20-3178C6?logo=typeorm&logoColor=typeorm)
 
 # Quick Start Node.js Project with TypeScript and TypeORM
 
