@@ -9,7 +9,6 @@
     "debug": "nodemon --inspect ./dist/server.js",
     "start:dev": "nodemon ./src/server.ts",
     "start:prod": "node ./dist/server.js",
-    "vercel-build": "npm run build && npm run migration:run",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm migration:run -- -d ./src/db.ts",
     "migration:revert": "npm run typeorm migration:revert -- -d ./src/db.ts",
