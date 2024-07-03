@@ -1,18 +1,19 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import reviewService from './review.service';
+import reviewService, { ReviewService } from './review.service';
 import CustomRequest from './../interfaces/customRequest';
-import { config } from 'dotenv';
 
 class ReviewController {
-  createReview = asyncHandler(
+  constructor(private readonly reviewService: ReviewService) {}
+
+  public createReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.user) req.body.user = (req as CustomRequest).user.id;
       if (!req.body.doctor) req.body.doctor = req.params.id;
 
       const { user, doctor, review, rating } = req.body;
 
-      const newReview = await reviewService.create(
+      const newReview = await this.reviewService.create(
         doctor,
         user,
         review,
@@ -26,9 +27,9 @@ class ReviewController {
     }
   );
 
-  getAllReviews = asyncHandler(
+  public getAllReviews = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const reviews = await reviewService.getAll();
+      const reviews = await this.reviewService.getAll();
       res.status(200).json({
         status: 'success',
         result: reviews.length,
@@ -37,9 +38,11 @@ class ReviewController {
     }
   );
 
-  getAllReviewsOneDoctor = asyncHandler(
+  public getAllReviewsOneDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const reviews = await reviewService.getAllReviewOneDoctor(req.params.id);
+      const reviews = await this.reviewService.getAllReviewOneDoctor(
+        req.params.id
+      );
       res.status(200).json({
         status: 'success',
         result: reviews.length,
@@ -48,9 +51,11 @@ class ReviewController {
     }
   );
 
-  getAllReviewsOneUser = asyncHandler(
+  public getAllReviewsOneUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const reviews = await reviewService.getAllReviewOneUser(req.params.id);
+      const reviews = await this.reviewService.getAllReviewOneUser(
+        req.params.id
+      );
       res.status(200).json({
         status: 'success',
         result: reviews.length,
@@ -59,9 +64,9 @@ class ReviewController {
     }
   );
 
-  getOneReview = asyncHandler(
+  public getOneReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const review = await reviewService.getOne(req.params.id);
+      const review = await this.reviewService.getOne(req.params.id);
       res.status(200).json({
         status: 'success',
         date: review,
@@ -69,10 +74,10 @@ class ReviewController {
     }
   );
 
-  updateOneReview = asyncHandler(
+  public updateOneReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { review, rating } = req.body;
-      const updateReview = await reviewService.updateOne(
+      const updateReview = await this.reviewService.updateOne(
         req.params.id,
         (req as CustomRequest).user.id,
         review,
@@ -86,9 +91,9 @@ class ReviewController {
     }
   );
 
-  deleteOneReview = asyncHandler(
+  public deleteOneReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await reviewService.deleteOne(
+      await this.reviewService.deleteOne(
         req.params.id,
         (req as CustomRequest).user.id
       );
@@ -101,5 +106,5 @@ class ReviewController {
   );
 }
 
-const reviewController = new ReviewController();
+const reviewController = new ReviewController(reviewService);
 export default reviewController;

@@ -2,8 +2,8 @@ import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../db';
-import { User } from '../entity/user';
-import { Doctor } from '../entity/doctor';
+import { User } from '../entities/user';
+import { Doctor } from '../entities/doctor';
 import AppError from '../utils/appError';
 import CustomRequest from '../interfaces/customRequest';
 

@@ -1,12 +1,14 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import contactUsService from './contactUs.service';
+import contactUsService, { ContactUsService } from './contactUs.service';
 
 class ContactUsController {
-  createContactUs = asyncHandler(
+  constructor(private readonly contactUsService: ContactUsService) {}
+
+  public createContactUs = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { name, email, phone, message } = req.body;
-      const newMessage = await contactUsService.create(
+      const newMessage = await this.contactUsService.create(
         name,
         email,
         phone,
@@ -19,9 +21,9 @@ class ContactUsController {
     }
   );
 
-  getAll = asyncHandler(
+  public getAll = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await contactUsService.findAll();
+      const data = await this.contactUsService.findAll();
 
       res.status(200).json({
         status: 'success',
@@ -32,5 +34,5 @@ class ContactUsController {
   );
 }
 
-const contactUsController = new ContactUsController();
+const contactUsController = new ContactUsController(contactUsService);
 export default contactUsController;

@@ -1,15 +1,19 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import doctorAwardsService from './doctorAwards.service';
+import doctorAwardsService, {
+  DoctorAwardsService,
+} from './doctorAwards.service';
 import CustomRequest from './../../interfaces/customRequest';
 
 class DoctorAwardsController {
-  createDoctorAwards = asyncHandler(
+  constructor(private readonly doctorAwardsService: DoctorAwardsService) {}
+
+  public createDoctorAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
       const { doctor, awards, year } = req.body;
-      const data = await doctorAwardsService.create(doctor, awards, year);
+      const data = await this.doctorAwardsService.create(doctor, awards, year);
 
       res.status(201).json({
         status: 'success',
@@ -18,9 +22,9 @@ class DoctorAwardsController {
     }
   );
 
-  getAllDoctorsAwards = asyncHandler(
+  public getAllDoctorsAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorAwardsService.getAll();
+      const data = await this.doctorAwardsService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -30,9 +34,9 @@ class DoctorAwardsController {
     }
   );
 
-  getAllDoctorAwards = asyncHandler(
+  public getAllDoctorAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorAwardsService.getAllAwards(
+      const data = await this.doctorAwardsService.getAllAwards(
         (req as CustomRequest).doctor.id
       );
 
@@ -44,9 +48,9 @@ class DoctorAwardsController {
     }
   );
 
-  getOneDoctorAwards = asyncHandler(
+  public getOneDoctorAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorAwardsService.getOne(req.params.id);
+      const data = await this.doctorAwardsService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -55,11 +59,11 @@ class DoctorAwardsController {
     }
   );
 
-  updateOneDoctorAwards = asyncHandler(
+  public updateOneDoctorAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { awards, year } = req.body;
 
-      const data = await doctorAwardsService.updateOne(
+      const data = await this.doctorAwardsService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         awards,
@@ -73,9 +77,9 @@ class DoctorAwardsController {
     }
   );
 
-  deleteOneDoctorAwards = asyncHandler(
+  public deleteOneDoctorAwards = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await doctorAwardsService.deleteOne(
+      await this.doctorAwardsService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -88,5 +92,5 @@ class DoctorAwardsController {
   );
 }
 
-const doctorAwardsController = new DoctorAwardsController();
+const doctorAwardsController = new DoctorAwardsController(doctorAwardsService);
 export default doctorAwardsController;

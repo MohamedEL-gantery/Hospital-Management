@@ -1,15 +1,21 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import doctorEducationService from './doctorEducation.service';
+import doctorEducationService, {
+  DoctorEducationService,
+} from './doctorEducation.service';
 import CustomRequest from './../../interfaces/customRequest';
 
 class DoctorEducationController {
-  createDoctorEducation = asyncHandler(
+  constructor(
+    private readonly doctorEducationService: DoctorEducationService
+  ) {}
+
+  public createDoctorEducation = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
       const { doctor, degree, college, yearOfCompletion } = req.body;
-      const data = await doctorEducationService.create(
+      const data = await this.doctorEducationService.create(
         doctor,
         degree,
         college,
@@ -23,9 +29,9 @@ class DoctorEducationController {
     }
   );
 
-  getAllDoctorsEducation = asyncHandler(
+  public getAllDoctorsEducation = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorEducationService.getAll();
+      const data = await this.doctorEducationService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -35,9 +41,9 @@ class DoctorEducationController {
     }
   );
 
-  getAllDoctorEducations = asyncHandler(
+  public getAllDoctorEducations = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorEducationService.getAllEducations(
+      const data = await this.doctorEducationService.getAllEducations(
         (req as CustomRequest).doctor.id
       );
 
@@ -49,9 +55,9 @@ class DoctorEducationController {
     }
   );
 
-  getOneDoctorEducation = asyncHandler(
+  public getOneDoctorEducation = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorEducationService.getOne(req.params.id);
+      const data = await this.doctorEducationService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -60,11 +66,11 @@ class DoctorEducationController {
     }
   );
 
-  updateOneDoctorEducation = asyncHandler(
+  public updateOneDoctorEducation = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { degree, college, yearOfCompletion } = req.body;
 
-      const data = await doctorEducationService.updateOne(
+      const data = await this.doctorEducationService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         degree,
@@ -79,9 +85,9 @@ class DoctorEducationController {
     }
   );
 
-  deleteOneDoctorEducation = asyncHandler(
+  public deleteOneDoctorEducation = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await doctorEducationService.deleteOne(
+      await this.doctorEducationService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -94,5 +100,7 @@ class DoctorEducationController {
   );
 }
 
-const doctorEducationController = new DoctorEducationController();
+const doctorEducationController = new DoctorEducationController(
+  doctorEducationService
+);
 export default doctorEducationController;

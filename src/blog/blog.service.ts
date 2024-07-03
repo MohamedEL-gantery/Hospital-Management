@@ -1,31 +1,44 @@
 import 'express-async-errors';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { Category } from '../entity/category';
-import { Blog } from '../entity/blog';
-import { Doctor } from '../entity/doctor';
+import { Category } from '../entities/category';
+import { Blog } from '../entities/blog';
+import { Doctor } from '../entities/doctor';
 import AppError from '../utils/appError';
 import { Roles } from '../enum/roles';
 
-const blogRepository = AppDataSource.getRepository(Blog);
-const doctorRepository = AppDataSource.getRepository(Doctor);
-const categoryRepository = AppDataSource.getRepository(Category);
+export class BlogService {
+  private blogRepository;
+  private doctorRepository;
+  private categoryRepository;
+  constructor(private dataSource: DataSource) {
+    this.blogRepository = this.dataSource.getRepository(Blog);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+    this.categoryRepository = this.dataSource.getRepository(Category);
+  }
 
-class BlogService {
-  create = async (doctor: any, text: string, photo: any, category: any) => {
-    const newBlog = blogRepository.create({
+  public create = async (
+    doctor: any,
+    text: string,
+    photo: any,
+    category: any
+  ) => {
+    const newBlog = this.blogRepository.create({
       doctor: { id: doctor },
       category: { id: category },
       text,
       photo,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
     }
 
-    const categoryId = await categoryRepository.findOne({
+    const categoryId = await this.categoryRepository.findOne({
       where: { id: category },
     });
 
@@ -38,15 +51,15 @@ class BlogService {
     return newBlog;
   };
 
-  getAll = async () => {
-    const blogs = await blogRepository.find({
+  public getAll = async () => {
+    const blogs = await this.blogRepository.find({
       relations: ['category', 'doctor'],
     });
     return blogs;
   };
 
-  getOne = async (id: any) => {
-    const blog = await blogRepository.findOne({
+  public getOne = async (id: any) => {
+    const blog = await this.blogRepository.findOne({
       where: { id },
       relations: ['category', 'doctor'],
     });
@@ -58,14 +71,14 @@ class BlogService {
     return blog;
   };
 
-  updateOne = async (
+  public updateOne = async (
     id: any,
     doctor: any,
     text?: string,
     photo?: string,
     category?: any
   ) => {
-    const blog = await blogRepository.findOne({
+    const blog = await this.blogRepository.findOne({
       where: { id },
       relations: ['category', 'doctor'],
     });
@@ -85,7 +98,7 @@ class BlogService {
     blog.photo = photo || blog.photo;
     blog.category = category || blog.category;
 
-    const categoryExist = await categoryRepository.findOne({
+    const categoryExist = await this.categoryRepository.findOne({
       where: { id: category },
     });
 
@@ -98,8 +111,8 @@ class BlogService {
     return blog;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const blog = await blogRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const blog = await this.blogRepository.findOne({
       where: { id },
       relations: ['category', 'doctor'],
     });
@@ -119,5 +132,5 @@ class BlogService {
   };
 }
 
-const blogService = new BlogService();
+const blogService = new BlogService(AppDataSource);
 export default blogService;

@@ -1,21 +1,21 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 
-import { Blog } from './entity/blog';
-import { Booking } from './entity/booking';
-import { Cart } from './entity/cart';
-import { Category } from './entity/category';
-import { ContactUs } from './entity/contactus';
-import { Doctor } from './entity/doctor';
-import { DoctorAwards } from './entity/doctorAwards';
-import { DoctorClinicPhoto } from './entity/doctorClinicPhoto';
-import { DoctorEducation } from './entity/doctorEducation';
-import { DoctorExperience } from './entity/doctorExperience';
-import { Calender } from './entity/doctorCalender';
-import { User } from './entity/user';
-import { UserDependent } from './entity/userDependent';
-import { UserWishlist } from './entity/userWishlist';
-import { Review } from './entity/review';
+import { Blog } from './entities/blog';
+import { Booking } from './entities/booking';
+import { Cart } from './entities/cart';
+import { Category } from './entities/category';
+import { ContactUs } from './entities/contactus';
+import { Doctor } from './entities/doctor';
+import { DoctorAwards } from './entities/doctorAwards';
+import { DoctorClinicPhoto } from './entities/doctorClinicPhoto';
+import { DoctorEducation } from './entities/doctorEducation';
+import { DoctorExperience } from './entities/doctorExperience';
+import { Calender } from './entities/doctorCalender';
+import { User } from './entities/user';
+import { UserDependent } from './entities/userDependent';
+import { UserWishlist } from './entities/userWishlist';
+import { Review } from './entities/review';
 import { Hospital1719766323186 } from './migrations/1719766323186-hospital';
 
 import dotenv from 'dotenv';
@@ -48,5 +48,4 @@ export const AppDataSource = new DataSource({
     Review,
   ],
   migrations: [Hospital1719766323186],
-  subscribers: [],
 });

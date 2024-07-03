@@ -1,21 +1,29 @@
 import 'express-async-errors';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../../db';
-import { Doctor } from '../../entity/doctor';
-import { DoctorAwards } from './../../entity/doctorAwards';
+import { Doctor } from '../../entities/doctor';
+import { DoctorAwards } from '../../entities/doctorAwards';
 import AppError from '../../utils/appError';
 
-const doctorAwardsRepository = AppDataSource.getRepository(DoctorAwards);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class DoctorAwardsService {
+  private doctorAwardsRepository;
+  private doctorRepository;
 
-class DoctorAwardsService {
-  create = async (doctor: any, awards: string, year: Date) => {
-    const newAwards = doctorAwardsRepository.create({
+  constructor(private dataSource: DataSource) {
+    this.doctorAwardsRepository = this.dataSource.getRepository(DoctorAwards);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public create = async (doctor: any, awards: string, year: Date) => {
+    const newAwards = this.doctorAwardsRepository.create({
       doctor: { id: doctor },
       awards,
       year,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
@@ -26,23 +34,23 @@ class DoctorAwardsService {
     return newAwards;
   };
 
-  getAll = async () => {
-    const data = await doctorAwardsRepository.find({
+  public getAll = async () => {
+    const data = await this.doctorAwardsRepository.find({
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllAwards = async (doctor: any) => {
-    const data = await doctorAwardsRepository.find({
+  public getAllAwards = async (doctor: any) => {
+    const data = await this.doctorAwardsRepository.find({
       where: { doctor: { id: doctor } },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getOne = async (id: any) => {
-    const data = await doctorAwardsRepository.findOne({
+  public getOne = async (id: any) => {
+    const data = await this.doctorAwardsRepository.findOne({
       where: { id },
       relations: ['doctor'],
     });
@@ -54,8 +62,13 @@ class DoctorAwardsService {
     return data;
   };
 
-  updateOne = async (id: any, doctor: any, awards?: string, year?: Date) => {
-    const data = await doctorAwardsRepository.findOne({
+  public updateOne = async (
+    id: any,
+    doctor: any,
+    awards?: string,
+    year?: Date
+  ) => {
+    const data = await this.doctorAwardsRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -72,8 +85,8 @@ class DoctorAwardsService {
     return data;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const data = await doctorAwardsRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const data = await this.doctorAwardsRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -86,5 +99,5 @@ class DoctorAwardsService {
   };
 }
 
-const doctorAwardsService = new DoctorAwardsService();
+const doctorAwardsService = new DoctorAwardsService(AppDataSource);
 export default doctorAwardsService;

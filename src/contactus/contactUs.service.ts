@@ -1,25 +1,35 @@
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { ContactUs } from '../entity/contactus';
+import { ContactUs } from '../entities/contactus';
 
-const ContactUsRepository = AppDataSource.getRepository(ContactUs);
+export class ContactUsService {
+  private contactUsRepository;
 
-class ContactUsService {
-  async create(name: string, email: string, phone: string, message: string) {
-    const newMessage = ContactUsRepository.create({
+  constructor(private dataSource: DataSource) {
+    this.contactUsRepository = this.dataSource.getRepository(ContactUs);
+  }
+
+  public async create(
+    name: string,
+    email: string,
+    phone: string,
+    message: string
+  ) {
+    const newMessage = this.contactUsRepository.create({
       name,
       email,
       phone,
       message,
     });
-    await ContactUsRepository.save(newMessage);
+    await this.contactUsRepository.save(newMessage);
     return newMessage;
   }
 
-  async findAll() {
-    const message = await ContactUsRepository.find();
+  public async findAll() {
+    const message = await this.contactUsRepository.find();
     return message;
   }
 }
 
-const contactUsService = new ContactUsService();
+const contactUsService = new ContactUsService(AppDataSource);
 export default contactUsService;

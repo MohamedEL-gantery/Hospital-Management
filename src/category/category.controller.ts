@@ -3,10 +3,12 @@ import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import { cloudinaryUploadSingleImag } from '../utils/cloudinary';
-import categoryService from './category.service';
+import categoryService, { CategoryService } from './category.service';
 
 class CategoryController {
-  createCategory = asyncHandler(
+  constructor(private readonly categoryService: CategoryService) {}
+
+  public createCategory = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -23,7 +25,7 @@ class CategoryController {
         fs.unlinkSync(imagePath);
       }
       const { name } = req.body;
-      const newCategory = await categoryService.create(name, photo);
+      const newCategory = await this.categoryService.create(name, photo);
 
       res.status(201).json({
         status: 'success',
@@ -32,9 +34,9 @@ class CategoryController {
     }
   );
 
-  getAllCategory = asyncHandler(
+  public getAllCategory = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const categories = await categoryService.find();
+      const categories = await this.categoryService.find();
 
       res.status(200).json({
         status: 'success',
@@ -44,9 +46,9 @@ class CategoryController {
     }
   );
 
-  getOneCategory = asyncHandler(
+  public getOneCategory = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const category = await categoryService.getOne(req.params.id);
+      const category = await this.categoryService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -55,7 +57,7 @@ class CategoryController {
     }
   );
 
-  updateOneCategory = asyncHandler(
+  public updateOneCategory = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -73,7 +75,7 @@ class CategoryController {
       }
       const { name } = req.body;
 
-      const category = await categoryService.updateOne(
+      const category = await this.categoryService.updateOne(
         req.params.id,
         name,
         photo
@@ -86,9 +88,9 @@ class CategoryController {
     }
   );
 
-  deleteOneCategory = asyncHandler(
+  public deleteOneCategory = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await categoryService.deleteOne(req.params.id);
+      await this.categoryService.deleteOne(req.params.id);
 
       res.status(204).json({
         status: 'success',
@@ -98,5 +100,5 @@ class CategoryController {
   );
 }
 
-const categoryController = new CategoryController();
+const categoryController = new CategoryController(categoryService);
 export default categoryController;

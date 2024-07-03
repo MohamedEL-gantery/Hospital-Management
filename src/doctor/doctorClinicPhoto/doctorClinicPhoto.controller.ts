@@ -2,12 +2,18 @@ import path from 'path';
 import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import doctorClinicPhotoService from './doctorClinicPhoto.service';
+import doctorClinicPhotoService, {
+  DoctorClinicPhotoService,
+} from './doctorClinicPhoto.service';
 import { cloudinaryUploadSingleImag } from './../../utils/cloudinary';
 import CustomRequest from './../../interfaces/customRequest';
 
 class DoctorClinicPhotoController {
-  createDoctorClinicPhoto = asyncHandler(
+  constructor(
+    private readonly doctorClinicPhotoService: DoctorClinicPhotoService
+  ) {}
+
+  public createDoctorClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
@@ -27,7 +33,7 @@ class DoctorClinicPhotoController {
       }
 
       const { doctor } = req.body;
-      const data = await doctorClinicPhotoService.create(doctor, photo);
+      const data = await this.doctorClinicPhotoService.create(doctor, photo);
 
       res.status(201).json({
         status: 'success',
@@ -36,9 +42,9 @@ class DoctorClinicPhotoController {
     }
   );
 
-  getAllDoctorsClinicPhoto = asyncHandler(
+  public getAllDoctorsClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorClinicPhotoService.getAll();
+      const data = await this.doctorClinicPhotoService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -48,9 +54,9 @@ class DoctorClinicPhotoController {
     }
   );
 
-  getAllDoctorClinicPhoto = asyncHandler(
+  public getAllDoctorClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorClinicPhotoService.getAllPhotos(
+      const data = await this.doctorClinicPhotoService.getAllPhotos(
         (req as CustomRequest).doctor.id
       );
 
@@ -62,9 +68,9 @@ class DoctorClinicPhotoController {
     }
   );
 
-  getOneDoctorClinicPhoto = asyncHandler(
+  public getOneDoctorClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorClinicPhotoService.getOne(req.params.id);
+      const data = await this.doctorClinicPhotoService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -73,7 +79,7 @@ class DoctorClinicPhotoController {
     }
   );
 
-  updateOneDoctorClinicPhoto = asyncHandler(
+  public updateOneDoctorClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo: any;
 
@@ -90,7 +96,7 @@ class DoctorClinicPhotoController {
         fs.unlinkSync(imagePath);
       }
 
-      const data = await doctorClinicPhotoService.updateOne(
+      const data = await this.doctorClinicPhotoService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         photo
@@ -103,9 +109,9 @@ class DoctorClinicPhotoController {
     }
   );
 
-  deleteOneDoctorClinicPhoto = asyncHandler(
+  public deleteOneDoctorClinicPhoto = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await doctorClinicPhotoService.deleteOne(
+      await this.doctorClinicPhotoService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -118,5 +124,7 @@ class DoctorClinicPhotoController {
   );
 }
 
-const doctorClinicPhotoController = new DoctorClinicPhotoController();
+const doctorClinicPhotoController = new DoctorClinicPhotoController(
+  doctorClinicPhotoService
+);
 export default doctorClinicPhotoController;

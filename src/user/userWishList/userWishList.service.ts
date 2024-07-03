@@ -1,29 +1,37 @@
 import 'express-async-errors';
 import { AppDataSource } from '../../db';
-import { UserWishlist } from '../../entity/userWishlist';
-import { User } from '../../entity/user';
-import { Doctor } from '../../entity/doctor';
+import { DataSource } from 'typeorm';
+import { UserWishlist } from '../../entities/userWishlist';
+import { User } from '../../entities/user';
+import { Doctor } from '../../entities/doctor';
 import AppError from '../../utils/appError';
 
-const userRepository = AppDataSource.getRepository(User);
-const doctorRepository = AppDataSource.getRepository(Doctor);
-const userWishlistRepository = AppDataSource.getRepository(UserWishlist);
+export class UserWishlistService {
+  private userRepository;
+  private doctorRepository;
+  private userWishlistRepository;
+  constructor(private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+    this.userWishlistRepository = this.dataSource.getRepository(UserWishlist);
+  }
 
-class UserWishlistService {
-  crete = async (user: any, doctor: any) => {
-    const userId = await userRepository.findOne({ where: { id: user } });
+  public create = async (user: any, doctor: any) => {
+    const userId = await this.userRepository.findOne({ where: { id: user } });
 
     if (!userId) {
       throw new AppError('User not found', 400);
     }
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('Doctor not found', 400);
     }
 
-    const foundWishList = await userWishlistRepository.findOne({
+    const foundWishList = await this.userWishlistRepository.findOne({
       where: { user: { id: user }, doctor: { id: doctor } },
     });
 
@@ -31,7 +39,7 @@ class UserWishlistService {
       throw new AppError('Doctor already exist in your wishlist', 400);
     }
 
-    const newWishlist = userWishlistRepository.create({
+    const newWishlist = this.userWishlistRepository.create({
       user,
       doctor,
     });
@@ -41,8 +49,8 @@ class UserWishlistService {
     return newWishlist;
   };
 
-  getAll = async (user: any) => {
-    const data = await userWishlistRepository.find({
+  public getAll = async (user: any) => {
+    const data = await this.userWishlistRepository.find({
       where: { user: { id: user } },
       relations: ['doctor'],
     });
@@ -54,8 +62,8 @@ class UserWishlistService {
     return data;
   };
 
-  deleteOne = async (id: any, user: any) => {
-    const data = await userWishlistRepository.findOne({
+  public deleteOne = async (id: any, user: any) => {
+    const data = await this.userWishlistRepository.findOne({
       where: { id, user: { id: user } },
     });
 
@@ -67,5 +75,5 @@ class UserWishlistService {
   };
 }
 
-const userWishlistService = new UserWishlistService();
+const userWishlistService = new UserWishlistService(AppDataSource);
 export default userWishlistService;

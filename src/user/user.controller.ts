@@ -2,19 +2,21 @@ import path from 'path';
 import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import userService from './user.service';
+import userService, { UserService } from './user.service';
 import CustomRequest from './../interfaces/customRequest';
 import { cloudinaryUploadSingleImag } from '../utils/cloudinary';
 
 class UserController {
-  getMe = (req: Request, res: Response, next: NextFunction) => {
+  constructor(private readonly userService: UserService) {}
+
+  public getMe = (req: Request, res: Response, next: NextFunction) => {
     req.params.id = (req as CustomRequest).user.id;
     next();
   };
 
-  getAllUser = asyncHandler(
+  public getAllUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const users = await userService.getAll();
+      const users = await this.userService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -24,9 +26,9 @@ class UserController {
     }
   );
 
-  getOneUser = asyncHandler(
+  public getOneUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const user = await userService.getOne(req.params.id);
+      const user = await this.userService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -35,7 +37,7 @@ class UserController {
     }
   );
 
-  updateOneUser = asyncHandler(
+  public updateOneUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -66,7 +68,7 @@ class UserController {
         gender,
       } = req.body;
 
-      const user = await userService.updateOne(
+      const user = await this.userService.updateOne(
         req.params.id,
         name,
         email,
@@ -89,9 +91,9 @@ class UserController {
     }
   );
 
-  deleteOneUser = asyncHandler(
+  public deleteOneUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await userService.deleteOne((req as CustomRequest).user.id);
+      await this.userService.deleteOne((req as CustomRequest).user.id);
 
       res.status(204).json({
         status: 'success',
@@ -100,11 +102,11 @@ class UserController {
     }
   );
 
-  searchByName = asyncHandler(
+  public searchByName = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { name } = req.body;
 
-      const users = await userService.search(name);
+      const users = await this.userService.search(name);
 
       res.status(200).json({
         status: 'success',
@@ -114,5 +116,5 @@ class UserController {
   );
 }
 
-const userController = new UserController();
+const userController = new UserController(userService);
 export default userController;

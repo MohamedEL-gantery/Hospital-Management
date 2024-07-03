@@ -1,15 +1,19 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import CustomRequest from './../../interfaces/customRequest';
-import userDependentService from './userDependent.service';
+import userDependentService, {
+  UserDependentService,
+} from './userDependent.service';
 
 class UserDependentController {
-  createDependent = asyncHandler(
+  constructor(private readonly userDependentService: UserDependentService) {}
+
+  public createDependent = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.ownerId) req.body.ownerId = (req as CustomRequest).user.id;
       const { ownerId, relationship, userId } = req.body;
 
-      const data = await userDependentService.create(
+      const data = await this.userDependentService.create(
         ownerId,
         relationship,
         userId
@@ -22,9 +26,9 @@ class UserDependentController {
     }
   );
 
-  getAllDependent = asyncHandler(
+  public getAllDependent = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await userDependentService.find(
+      const data = await this.userDependentService.find(
         (req as CustomRequest).user.id
       );
 
@@ -36,9 +40,9 @@ class UserDependentController {
     }
   );
 
-  getOneDependent = asyncHandler(
+  public getOneDependent = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await userDependentService.findOne(
+      const data = await this.userDependentService.findOne(
         req.params.id,
         (req as CustomRequest).user.id
       );
@@ -50,9 +54,9 @@ class UserDependentController {
     }
   );
 
-  updateOneDependent = asyncHandler(
+  public updateOneDependent = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await userDependentService.update(
+      const data = await this.userDependentService.update(
         req.params.id,
         (req as CustomRequest).user.id,
         req.body.relationship
@@ -65,9 +69,9 @@ class UserDependentController {
     }
   );
 
-  deleteOneDependent = asyncHandler(
+  public deleteOneDependent = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await userDependentService.delete(
+      await this.userDependentService.delete(
         req.params.id,
         (req as CustomRequest).user.id
       );
@@ -80,5 +84,7 @@ class UserDependentController {
   );
 }
 
-const userDependentController = new UserDependentController();
+const userDependentController = new UserDependentController(
+  userDependentService
+);
 export default userDependentController;

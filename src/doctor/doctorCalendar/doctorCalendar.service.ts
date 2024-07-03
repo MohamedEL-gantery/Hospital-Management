@@ -1,15 +1,21 @@
 import 'express-async-errors';
 import { AppDataSource } from '../../db';
-import { Doctor } from '../../entity/doctor';
-import { Calender } from '../../entity/doctorCalender';
+import { Doctor } from '../../entities/doctor';
+import { Calender } from '../../entities/doctorCalender';
 import AppError from '../../utils/appError';
 import { Day } from '../../enum/day';
+import { DataSource } from 'typeorm';
 
-const calenderRepository = AppDataSource.getRepository(Calender);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class CalenderService {
+  private calenderRepository;
+  private doctorRepository;
 
-class CalenderService {
-  create = async (
+  constructor(private dataSource: DataSource) {
+    this.calenderRepository = this.dataSource.getRepository(Calender);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public create = async (
     doctor: any,
     day: Day,
     date: Date,
@@ -18,7 +24,7 @@ class CalenderService {
     duration: string,
     price: number
   ) => {
-    const newCalender = calenderRepository.create({
+    const newCalender = this.calenderRepository.create({
       doctor: { id: doctor },
       day,
       date,
@@ -28,13 +34,15 @@ class CalenderService {
       price,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
     }
 
-    const calenderExist = await calenderRepository.findOne({
+    const calenderExist = await this.calenderRepository.findOne({
       where: {
         doctor: { id: doctor },
         day: day,
@@ -53,47 +61,47 @@ class CalenderService {
     return newCalender;
   };
 
-  getAll = async () => {
-    const data = await calenderRepository.find({
+  public getAll = async () => {
+    const data = await this.calenderRepository.find({
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllPaid = async () => {
-    const data = await calenderRepository.find({
+  public getAllPaid = async () => {
+    const data = await this.calenderRepository.find({
       where: { paid: true },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getMyPaidCalender = async (doctor:any) => {
-    const data = await calenderRepository.find({
-      where: { doctor: { id: doctor } ,paid: true },
+  public getMyPaidCalender = async (doctor: any) => {
+    const data = await this.calenderRepository.find({
+      where: { doctor: { id: doctor }, paid: true },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getMyCalender = async (doctor: any) => {
-    const data = await calenderRepository.find({
-      where: { doctor: { id: doctor }},
+  public getMyCalender = async (doctor: any) => {
+    const data = await this.calenderRepository.find({
+      where: { doctor: { id: doctor } },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllCalender = async (doctor: any) => {
-    const data = await calenderRepository.find({
-      where: { doctor: { id: doctor },paid:false},
+  public getAllCalender = async (doctor: any) => {
+    const data = await this.calenderRepository.find({
+      where: { doctor: { id: doctor }, paid: false },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getOne = async (id: any, doctor: any) => {
-    const data = await calenderRepository.findOne({
+  public getOne = async (id: any, doctor: any) => {
+    const data = await this.calenderRepository.findOne({
       where: { id },
       relations: ['doctor'],
     });
@@ -112,7 +120,7 @@ class CalenderService {
     return data;
   };
 
-  updateOne = async (
+  public updateOne = async (
     id: any,
     doctor: any,
     day?: Day,
@@ -122,7 +130,7 @@ class CalenderService {
     duration?: string,
     price?: number
   ) => {
-    const data = await calenderRepository.findOne({
+    const data = await this.calenderRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -143,8 +151,8 @@ class CalenderService {
     return data;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const data = await calenderRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const data = await this.calenderRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -157,5 +165,5 @@ class CalenderService {
   };
 }
 
-const calenderService = new CalenderService();
+const calenderService = new CalenderService(AppDataSource);
 export default calenderService;

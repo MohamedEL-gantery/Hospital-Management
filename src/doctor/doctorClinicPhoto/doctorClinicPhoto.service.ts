@@ -1,21 +1,29 @@
 import 'express-async-errors';
 import { AppDataSource } from '../../db';
-import { Doctor } from '../../entity/doctor';
-import { DoctorClinicPhoto } from './../../entity/doctorClinicPhoto';
+import { Doctor } from '../../entities/doctor';
+import { DoctorClinicPhoto } from '../../entities/doctorClinicPhoto';
 import AppError from '../../utils/appError';
+import { DataSource } from 'typeorm';
 
-const doctorClinicPhotoRepository =
-  AppDataSource.getRepository(DoctorClinicPhoto);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class DoctorClinicPhotoService {
+  private doctorClinicPhotoRepository;
+  private doctorRepository;
 
-class DoctorClinicPhotoService {
-  create = async (doctor: any, photo: any) => {
-    const newPhoto = doctorClinicPhotoRepository.create({
+  constructor(private dataSource: DataSource) {
+    this.doctorClinicPhotoRepository =
+      this.dataSource.getRepository(DoctorClinicPhoto);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public create = async (doctor: any, photo: any) => {
+    const newPhoto = this.doctorClinicPhotoRepository.create({
       doctor: { id: doctor },
       photo,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
@@ -26,23 +34,23 @@ class DoctorClinicPhotoService {
     return newPhoto;
   };
 
-  getAll = async () => {
-    const data = await doctorClinicPhotoRepository.find({
+  public getAll = async () => {
+    const data = await this.doctorClinicPhotoRepository.find({
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllPhotos = async (doctor: any) => {
-    const data = await doctorClinicPhotoRepository.find({
+  public getAllPhotos = async (doctor: any) => {
+    const data = await this.doctorClinicPhotoRepository.find({
       where: { doctor: { id: doctor } },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getOne = async (id: any) => {
-    const data = await doctorClinicPhotoRepository.findOne({
+  public getOne = async (id: any) => {
+    const data = await this.doctorClinicPhotoRepository.findOne({
       where: { id },
       relations: ['doctor'],
     });
@@ -54,8 +62,8 @@ class DoctorClinicPhotoService {
     return data;
   };
 
-  updateOne = async (id: any, doctor: any, photo: any) => {
-    const data = await doctorClinicPhotoRepository.findOne({
+  public updateOne = async (id: any, doctor: any, photo: any) => {
+    const data = await this.doctorClinicPhotoRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -70,8 +78,8 @@ class DoctorClinicPhotoService {
     return data;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const data = await doctorClinicPhotoRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const data = await this.doctorClinicPhotoRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -84,5 +92,5 @@ class DoctorClinicPhotoService {
   };
 }
 
-const doctorClinicPhotoService = new DoctorClinicPhotoService();
+const doctorClinicPhotoService = new DoctorClinicPhotoService(AppDataSource);
 export default doctorClinicPhotoService;

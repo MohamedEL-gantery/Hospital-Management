@@ -2,23 +2,31 @@ import path from 'path';
 import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { Doctor } from '../entity/doctor';
-import doctorService from './doctor.service';
+import { Doctor } from '../entities/doctor';
+import doctorService, { DoctorService } from './doctor.service';
 import CustomRequest from './../interfaces/customRequest';
 import { cloudinaryUploadSingleImag } from '../utils/cloudinary';
 
-const doctorRepository = AppDataSource.getRepository(Doctor);
-
 class DoctorController {
-  getMe = (req: Request, res: Response, next: NextFunction) => {
+  private doctorRepository;
+
+  constructor(
+    private dataSource: DataSource,
+    private readonly doctorService: DoctorService
+  ) {
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public getMe = (req: Request, res: Response, next: NextFunction) => {
     req.params.id = (req as CustomRequest).doctor.id;
     next();
   };
 
-  topFiveDoctor = asyncHandler(
+  public topFiveDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const doctor = await doctorRepository
+      const doctor = await this.doctorRepository
         .createQueryBuilder('doctor')
         .orderBy('doctor.ratingsAverage', 'DESC')
         .limit(5)
@@ -31,9 +39,9 @@ class DoctorController {
     }
   );
 
-  getAllDoctor = asyncHandler(
+  public getAllDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const doctors = await doctorService.getAll();
+      const doctors = await this.doctorService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -43,9 +51,9 @@ class DoctorController {
     }
   );
 
-  getOneDoctor = asyncHandler(
+  public getOneDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const doctor = await doctorService.getOne(req.params.id);
+      const doctor = await this.doctorService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -53,7 +61,8 @@ class DoctorController {
       });
     }
   );
-  updateOneDoctor = asyncHandler(
+
+  public updateOneDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -61,7 +70,7 @@ class DoctorController {
       if (req.file) {
         const imagePath = path.join(
           __dirname,
-           `../upload/images${req.file.filename}`
+          `../upload/images${req.file.filename}`
         );
         const uploadPhoto = await cloudinaryUploadSingleImag(imagePath);
         photo = uploadPhoto.secure_url;
@@ -91,7 +100,7 @@ class DoctorController {
         category,
       } = req.body;
 
-      const doctor = await doctorService.updateOne(
+      const doctor = await this.doctorService.updateOne(
         req.params.id,
         name,
         email,
@@ -121,9 +130,9 @@ class DoctorController {
     }
   );
 
-  deleteOneDoctor = asyncHandler(
+  public deleteOneDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await doctorService.deleteOne((req as CustomRequest).doctor.id);
+      await this.doctorService.deleteOne((req as CustomRequest).doctor.id);
 
       res.status(204).json({
         status: 'success',
@@ -132,11 +141,11 @@ class DoctorController {
     }
   );
 
-  searchByName = asyncHandler(
+  public searchByName = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { name } = req.body;
 
-      const doctors = await doctorService.search(name);
+      const doctors = await this.doctorService.search(name);
 
       res.status(200).json({
         status: 'success',
@@ -146,5 +155,5 @@ class DoctorController {
   );
 }
 
-const doctorController = new DoctorController();
+const doctorController = new DoctorController(AppDataSource, doctorService);
 export default doctorController;

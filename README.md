@@ -10,7 +10,7 @@ This repository provides a quick start template for setting up a Node.js project
 
 Before you begin, ensure you have the following installed on your system:
 
-- Node.js (v14 or higher)
+- Node.js (v20 )
 - npm (Node Package Manager)
 - TypeScript
 
@@ -18,33 +18,35 @@ Before you begin, ensure you have the following installed on your system:
 
 1. Clone this repository to your local machine:
 
-   ```bash
-   git clone https://github.com/MohamedEL-gantery/Hospital-Management.git
-   ```
-
-2. Navigate to the project directory:
-
 ```bash
-cd NodeJs-Project-QuickStart
+
+git clone https://github.com/MohamedEL-gantery/Hospital-Management.git
+
 ```
 
-3. Install the project dependencies:
+2. Install the project dependencies:
 
 ```bash
+
 npm install
+
 ```
 
-4. Copy the .env.example file and rename it to .env. Update the environment variables as needed:
+3. Copy the .env.example file and rename it to .env. Update the environment variables as needed:
 
 ```bash
+
 cp .env.example .env
+
 ```
 ## Upgrade Packages
 
 To upgrade project dependencies, you can use the following command:
 
 ```bash
+
 npm update
+
 ```
 
 This will update all packages to their latest compatible versions.
@@ -54,7 +56,9 @@ This will update all packages to their latest compatible versions.
 1.Start the development server:
 
 ```bash
+
 npm run start:dev
+
 ```
 
 ## Project Structure
@@ -86,9 +90,11 @@ The project follows this directory structure:
 
 - API Documentation: Document APIs using Postman.
 
- ```bash
+```bash
+
  https://documenter.getpostman.com/view/23762643/2sA3duHDhy
-   ```
+
+```
 
 ## Contributing
 

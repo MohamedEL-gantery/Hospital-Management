@@ -1,5 +1,5 @@
-import { User } from '../entity/user';
-import { Doctor } from '../entity/doctor';
+import { User } from '../entities/user';
+import { Doctor } from '../entities/doctor';
 import { Request } from 'express';
 
 export default interface CustomRequest extends Request {

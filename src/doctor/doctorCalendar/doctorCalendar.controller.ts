@@ -1,16 +1,18 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import calenderService from './doctorCalendar.service';
+import calenderService, { CalenderService } from './doctorCalendar.service';
 import CustomRequest from './../../interfaces/customRequest';
 
 class CalenderController {
-  createCalender = asyncHandler(
+  constructor(private readonly calenderService: CalenderService) {}
+
+  public createCalender = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
       const { doctor, day, date, dateOfStart, dateOfEnd, duration, price } =
         req.body;
-      const data = await calenderService.create(
+      const data = await this.calenderService.create(
         doctor,
         day,
         date,
@@ -27,9 +29,9 @@ class CalenderController {
     }
   );
 
-  getAllDoctorsCalenders = asyncHandler(
+  public getAllDoctorsCalenders = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getAll();
+      const data = await this.calenderService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -39,9 +41,9 @@ class CalenderController {
     }
   );
 
-  getAllDoctorsCalendersPaid = asyncHandler(
+  public getAllDoctorsCalendersPaid = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getAllPaid();
+      const data = await this.calenderService.getAllPaid();
 
       res.status(200).json({
         status: 'success',
@@ -51,22 +53,9 @@ class CalenderController {
     }
   );
 
-
-  getAllDoctorCalendersPaid = asyncHandler(
+  public getAllDoctorCalendersPaid = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getMyPaidCalender((req as CustomRequest).doctor.id)
-
-      res.status(200).json({
-        status: 'success',
-        result: data.length,
-        data: data,
-      });
-    }
-  );
-
-  getAllDoctorCalender = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getMyCalender(
+      const data = await this.calenderService.getMyPaidCalender(
         (req as CustomRequest).doctor.id
       );
 
@@ -78,9 +67,11 @@ class CalenderController {
     }
   );
 
-  getAllOneDoctorCalenders = asyncHandler(
+  public getAllDoctorCalender = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getAllCalender(req.params.id);
+      const data = await this.calenderService.getMyCalender(
+        (req as CustomRequest).doctor.id
+      );
 
       res.status(200).json({
         status: 'success',
@@ -90,9 +81,24 @@ class CalenderController {
     }
   );
 
-  getOneCalender = asyncHandler(
+  public getAllOneDoctorCalenders = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await calenderService.getOne(req.params.id,(req as CustomRequest).doctor.id);
+      const data = await this.calenderService.getAllCalender(req.params.id);
+
+      res.status(200).json({
+        status: 'success',
+        result: data.length,
+        data: data,
+      });
+    }
+  );
+
+  public getOneCalender = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const data = await this.calenderService.getOne(
+        req.params.id,
+        (req as CustomRequest).doctor.id
+      );
 
       res.status(200).json({
         status: 'success',
@@ -101,11 +107,11 @@ class CalenderController {
     }
   );
 
-  updateOneCalender = asyncHandler(
+  public updateOneCalender = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { day, date, dateOfStart, dateOfEnd, duration, price } = req.body;
 
-      const data = await calenderService.updateOne(
+      const data = await this.calenderService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         day,
@@ -123,9 +129,9 @@ class CalenderController {
     }
   );
 
-  deleteOneCalender = asyncHandler(
+  public deleteOneCalender = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await calenderService.deleteOne(
+      await this.calenderService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -138,5 +144,5 @@ class CalenderController {
   );
 }
 
-const calenderController = new CalenderController();
+const calenderController = new CalenderController(calenderService);
 export default calenderController;

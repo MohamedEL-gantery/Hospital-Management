@@ -1,31 +1,39 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { Cart } from '../entity/cart';
-import { User } from '../entity/user';
-import { Doctor } from '../entity/doctor';
-import { Calender } from '../entity/doctorCalender';
-import { Booking } from '../entity/booking';
+import { Cart } from '../entities/cart';
+import { User } from '../entities/user';
+import { Doctor } from '../entities/doctor';
+import { Calender } from '../entities/doctorCalender';
+import { Booking } from '../entities/booking';
 import AppError from '../utils/appError';
 import CustomRequest from './../interfaces/customRequest';
-
 
 const secret: any = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(secret, {
   apiVersion: '2024-06-20',
 });
 
-const userRepository = AppDataSource.getRepository(User);
-const doctorRepository = AppDataSource.getRepository(Doctor);
-const calenderRepository = AppDataSource.getRepository(Calender);
-const cartRepository = AppDataSource.getRepository(Cart);
-const bookingRepository = AppDataSource.getRepository(Booking);
-
 class BookingController {
-  checkoutSession = asyncHandler(
+  private userRepository;
+  private doctorRepository;
+  private calenderRepository;
+  private cartRepository;
+  private bookingRepository;
+
+  constructor(private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+    this.calenderRepository = this.dataSource.getRepository(Calender);
+    this.cartRepository = this.dataSource.getRepository(Cart);
+    this.bookingRepository = this.dataSource.getRepository(Booking);
+  }
+
+  public checkoutSession = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const cart = await cartRepository.findOne({
+      const cart = await this.cartRepository.findOne({
         where: { id: req.params.id },
         relations: ['calender', 'user'],
       });
@@ -34,20 +42,20 @@ class BookingController {
         return next(new AppError('Could not find cart', 404));
       }
 
+      const calender = await this.calenderRepository.findOne({
+        where: { id: cart.calender.id },
+        relations: ['doctor'],
+      });
 
-const calender=await calenderRepository.findOne({where:{id:cart.calender.id},relations:['doctor']});
-
-      if(!calender){
+      if (!calender) {
         return next(new AppError('Could not find doctor calender', 404));
       }
 
-
-if(calender.paid === true){
-  return next(new AppError(`Doctor's calender is already paid`, 400));
-}
+      if (calender.paid === true) {
+        return next(new AppError(`Doctor's calender is already paid`, 400));
+      }
 
       const totalPrice = 30 + cart.cartPrice;
-
 
       const session = await stripe.checkout.sessions.create({
         line_items: [
@@ -58,10 +66,9 @@ if(calender.paid === true){
               unit_amount: totalPrice * 100,
               product_data: {
                 name: `Doctor ${calender.doctor.name}`,
-                description:`Phone ${calender.doctor.phoneNumber}`,
+                description: `Phone ${calender.doctor.phoneNumber}`,
                 images: [calender.doctor.photo],
               },
-            
             },
           },
         ],
@@ -75,7 +82,6 @@ if(calender.paid === true){
           doctorId: calender.doctor.id,
           email: calender.doctor.email,
           clinicAddress: calender.doctor.clinicAddress,
-          //yearsOfExperience: calender.doctor.,
         },
       });
 
@@ -87,5 +93,5 @@ if(calender.paid === true){
   );
 }
 
-const bookingController = new BookingController();
+const bookingController = new BookingController(AppDataSource);
 export default bookingController;

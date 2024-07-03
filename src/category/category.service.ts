@@ -1,16 +1,22 @@
 import 'express-async-errors';
 import { AppDataSource } from '..//db';
-import { Category } from '../entity/category';
+import { Category } from '../entities/category';
 import AppError from '../utils/appError';
 import { Type } from '../enum/category';
+import { DataSource } from 'typeorm';
 
-const categoryRepository = AppDataSource.getRepository(Category);
+export class CategoryService {
+  private categoryRepository;
+  constructor(private dataSource: DataSource) {
+    this.categoryRepository = this.dataSource.getRepository(Category);
+  }
 
-class CategoryService {
-  create = async (name: Type, photo: any) => {
-    const newCategory = categoryRepository.create({ name, photo });
+  public create = async (name: Type, photo: any) => {
+    const newCategory = this.categoryRepository.create({ name, photo });
 
-    const nameExist = await categoryRepository.findOne({ where: { name } });
+    const nameExist = await this.categoryRepository.findOne({
+      where: { name },
+    });
 
     if (nameExist) {
       throw new AppError('Category already exist', 400);
@@ -21,15 +27,15 @@ class CategoryService {
     return newCategory;
   };
 
-  find = async () => {
-    const categories = await categoryRepository.find({
+  public find = async () => {
+    const categories = await this.categoryRepository.find({
       relations: ['doctors', 'blogs'],
     });
     return categories;
   };
 
-  getOne = async (id: any) => {
-    const category = await categoryRepository.find({
+  public getOne = async (id: any) => {
+    const category = await this.categoryRepository.find({
       where: { id },
       relations: ['doctors', 'blogs'],
     });
@@ -41,8 +47,8 @@ class CategoryService {
     return category;
   };
 
-  updateOne = async (id: any, name?: Type, photo?: any) => {
-    const category = await categoryRepository.findOne({ where: { id } });
+  public updateOne = async (id: any, name?: Type, photo?: any) => {
+    const category = await this.categoryRepository.findOne({ where: { id } });
     if (!category) {
       throw new AppError('Category not found', 404);
     }
@@ -55,8 +61,8 @@ class CategoryService {
     return category;
   };
 
-  deleteOne = async (id: any) => {
-    const category = await categoryRepository.findOne({ where: { id } });
+  public deleteOne = async (id: any) => {
+    const category = await this.categoryRepository.findOne({ where: { id } });
 
     if (!category) {
       throw new AppError('Category not found', 404);
@@ -66,5 +72,5 @@ class CategoryService {
   };
 }
 
-const categoryService = new CategoryService();
+const categoryService = new CategoryService(AppDataSource);
 export default categoryService;

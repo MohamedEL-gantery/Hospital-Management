@@ -1,15 +1,21 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import doctorExperienceService from './doctorExperience.service';
+import doctorExperienceService, {
+  DoctorExperienceService,
+} from './doctorExperience.service';
 import CustomRequest from './../../interfaces/customRequest';
 
 class DoctorExperienceController {
-  createDoctorExperience = asyncHandler(
+  constructor(
+    private readonly doctorExperienceService: DoctorExperienceService
+  ) {}
+
+  public createDoctorExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
       const { doctor, hospitalName, from, to, designation } = req.body;
-      const data = await doctorExperienceService.create(
+      const data = await this.doctorExperienceService.create(
         doctor,
         hospitalName,
         from,
@@ -24,9 +30,9 @@ class DoctorExperienceController {
     }
   );
 
-  getAllDoctorsExperience = asyncHandler(
+  public getAllDoctorsExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorExperienceService.getAll();
+      const data = await this.doctorExperienceService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -36,9 +42,9 @@ class DoctorExperienceController {
     }
   );
 
-  getAllDoctorExperience = asyncHandler(
+  public getAllDoctorExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorExperienceService.getAllExperience(
+      const data = await this.doctorExperienceService.getAllExperience(
         (req as CustomRequest).doctor.id
       );
 
@@ -50,9 +56,9 @@ class DoctorExperienceController {
     }
   );
 
-  getOneDoctorExperience = asyncHandler(
+  public getOneDoctorExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await doctorExperienceService.getOne(req.params.id);
+      const data = await this.doctorExperienceService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -60,11 +66,12 @@ class DoctorExperienceController {
       });
     }
   );
-  updateOneDoctorExperience = asyncHandler(
+
+  public updateOneDoctorExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { hospitalName, from, to, designation } = req.body;
 
-      const data = await doctorExperienceService.updateOne(
+      const data = await this.doctorExperienceService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         hospitalName,
@@ -80,9 +87,9 @@ class DoctorExperienceController {
     }
   );
 
-  deleteOneDoctorExperience = asyncHandler(
+  public deleteOneDoctorExperience = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await doctorExperienceService.deleteOne(
+      await this.doctorExperienceService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -95,5 +102,7 @@ class DoctorExperienceController {
   );
 }
 
-const doctorExperienceController = new DoctorExperienceController();
+const doctorExperienceController = new DoctorExperienceController(
+  doctorExperienceService
+);
 export default doctorExperienceController;

@@ -7,7 +7,7 @@
     "build": "npx tsc --build",
     "start": "node ./dist/server.js",
     "debug": "nodemon --inspect ./dist/server.js",
-    "start:dev": "nodemon ./src/server.ts",
+    "start:dev": "nodemon ./server.ts",
     "start:prod": "node ./dist/server.js",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm migration:run -- -d ./src/db.ts",
@@ -59,7 +59,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5"
   },
- "engines": {
-  "node": "20.x"
-}
+  "engines": {
+    "node": "20.x"
+  }
 }

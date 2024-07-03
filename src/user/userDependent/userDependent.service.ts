@@ -1,23 +1,28 @@
 import 'express-async-errors';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../../db';
-import { UserDependent } from './../../entity/userDependent';
-import { User } from '../../entity/user';
+import { UserDependent } from '../../entities/userDependent';
+import { User } from '../../entities/user';
 import AppError from '../../utils/appError';
 import { Relationship } from '../../enum/relationship';
 import { Roles } from '../../enum/roles';
 
-const userDependentRepository = AppDataSource.getRepository(UserDependent);
-const userRepository = AppDataSource.getRepository(User);
-
 export class UserDependentService {
-  create = async (owner: any, relationship: Relationship, user: any) => {
-    const dependent = await userDependentRepository.find({
+  private userRepository;
+  private userDependentRepository;
+  constructor(private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.userDependentRepository = this.dataSource.getRepository(UserDependent);
+  }
+
+  public create = async (owner: any, relationship: Relationship, user: any) => {
+    const dependent = await this.userDependentRepository.find({
       where: { owner: { id: owner } },
       relations: ['user'],
     });
 
     if (!dependent) {
-      const newDependent = userDependentRepository.create({
+      const newDependent = this.userDependentRepository.create({
         owner,
         relationship,
         user: { id: user },
@@ -27,7 +32,9 @@ export class UserDependentService {
         throw new AppError(`You can't add you in your dependent`, 400);
       }
 
-      const userFound = await userRepository.findOne({ where: { id: user } });
+      const userFound = await this.userRepository.findOne({
+        where: { id: user },
+      });
 
       if (!userFound) {
         throw new AppError('User not found', 404);
@@ -43,7 +50,7 @@ export class UserDependentService {
       throw new AppError('User already exist', 404);
     }
 
-    const newDependent = userDependentRepository.create({
+    const newDependent = this.userDependentRepository.create({
       owner,
       relationship,
       user: { id: user },
@@ -53,7 +60,9 @@ export class UserDependentService {
       throw new AppError(`You can't add you in your dependent`, 400);
     }
 
-    const userFound = await userRepository.findOne({ where: { id: user } });
+    const userFound = await this.userRepository.findOne({
+      where: { id: user },
+    });
 
     if (!userFound) {
       throw new AppError('User not found', 404);
@@ -63,8 +72,8 @@ export class UserDependentService {
     return newDependent;
   };
 
-  find = async (owner: any) => {
-    const allData = await userDependentRepository.find({
+  public find = async (owner: any) => {
+    const allData = await this.userDependentRepository.find({
       relations: ['user', 'owner'],
     });
 
@@ -73,8 +82,8 @@ export class UserDependentService {
     return data;
   };
 
-  findOne = async (id: any, owner: any) => {
-    const data = await userDependentRepository.findOne({
+  public findOne = async (id: any, owner: any) => {
+    const data = await this.userDependentRepository.findOne({
       where: { id },
       relations: ['user', 'owner'],
     });
@@ -93,8 +102,8 @@ export class UserDependentService {
     return data;
   };
 
-  update = async (id: any, owner: any, relationship: Relationship) => {
-    const data = await userDependentRepository.findOne({
+  public update = async (id: any, owner: any, relationship: Relationship) => {
+    const data = await this.userDependentRepository.findOne({
       where: { id },
       relations: ['user', 'owner'],
     });
@@ -117,8 +126,8 @@ export class UserDependentService {
     return data;
   };
 
-  delete = async (id: any, owner: any) => {
-    const data = await userDependentRepository.findOne({
+  public delete = async (id: any, owner: any) => {
+    const data = await this.userDependentRepository.findOne({
       where: { id },
       relations: ['user', 'owner'],
     });
@@ -138,5 +147,5 @@ export class UserDependentService {
   };
 }
 
-const userDependentService = new UserDependentService();
+const userDependentService = new UserDependentService(AppDataSource);
 export default userDependentService;

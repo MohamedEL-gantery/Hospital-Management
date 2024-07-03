@@ -1,16 +1,20 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import CustomRequest from './../../interfaces/customRequest';
-import userWishlistService from './userWishList.service';
+import userWishlistService, {
+  UserWishlistService,
+} from './userWishList.service';
 
 class UserWishListController {
-  createWishList = asyncHandler(
+  constructor(private readonly userWishlistService: UserWishlistService) {}
+
+  public createWishList = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.body.user) req.body.user = (req as CustomRequest).user.id;
 
       const { doctor, user } = req.body;
 
-      const newWishlist = await userWishlistService.crete(user, doctor);
+      const newWishlist = await this.userWishlistService.create(user, doctor);
 
       res.status(201).json({
         status: 'success',
@@ -19,9 +23,9 @@ class UserWishListController {
     }
   );
 
-  getAllWishList = asyncHandler(
+  public getAllWishList = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const data = await userWishlistService.getAll(
+      const data = await this.userWishlistService.getAll(
         (req as CustomRequest).user.id
       );
 
@@ -33,9 +37,9 @@ class UserWishListController {
     }
   );
 
-  deleteOneWishlist = asyncHandler(
+  public deleteOneWishlist = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await userWishlistService.deleteOne(
+      await this.userWishlistService.deleteOne(
         req.params.id,
         (req as CustomRequest).user.id
       );
@@ -47,6 +51,6 @@ class UserWishListController {
   );
 }
 
-const userWishListController = new UserWishListController();
+const userWishListController = new UserWishListController(userWishlistService);
 
 export default userWishListController;

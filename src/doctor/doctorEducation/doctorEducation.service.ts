@@ -1,27 +1,36 @@
 import 'express-async-errors';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../../db';
-import { Doctor } from '../../entity/doctor';
-import { DoctorEducation } from './../../entity/doctorEducation';
+import { Doctor } from '../../entities/doctor';
+import { DoctorEducation } from '../../entities/doctorEducation';
 import AppError from '../../utils/appError';
 
-const doctorEducationRepository = AppDataSource.getRepository(DoctorEducation);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class DoctorEducationService {
+  private doctorEducationRepository;
+  private doctorRepository;
 
-class DoctorEducationService {
-  create = async (
+  constructor(private dataSource: DataSource) {
+    this.doctorEducationRepository =
+      this.dataSource.getRepository(DoctorEducation);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public create = async (
     doctor: any,
     degree: string,
     college: string,
     yearOfCompletion: Date
   ) => {
-    const newEducation = doctorEducationRepository.create({
+    const newEducation = this.doctorEducationRepository.create({
       doctor: { id: doctor },
       degree,
       college,
       yearOfCompletion,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
@@ -32,23 +41,23 @@ class DoctorEducationService {
     return newEducation;
   };
 
-  getAll = async () => {
-    const data = await doctorEducationRepository.find({
+  public getAll = async () => {
+    const data = await this.doctorEducationRepository.find({
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllEducations = async (doctor: any) => {
-    const data = await doctorEducationRepository.find({
+  public getAllEducations = async (doctor: any) => {
+    const data = await this.doctorEducationRepository.find({
       where: { doctor: { id: doctor } },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getOne = async (id: any) => {
-    const data = await doctorEducationRepository.findOne({
+  public getOne = async (id: any) => {
+    const data = await this.doctorEducationRepository.findOne({
       where: { id },
       relations: ['doctor'],
     });
@@ -60,14 +69,14 @@ class DoctorEducationService {
     return data;
   };
 
-  updateOne = async (
+  public updateOne = async (
     id: any,
     doctor: any,
     degree?: string,
     college?: string,
     yearOfCompletion?: Date
   ) => {
-    const data = await doctorEducationRepository.findOne({
+    const data = await this.doctorEducationRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -85,8 +94,8 @@ class DoctorEducationService {
     return data;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const data = await doctorEducationRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const data = await this.doctorEducationRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -99,5 +108,5 @@ class DoctorEducationService {
   };
 }
 
-const doctorEducationService = new DoctorEducationService();
+const doctorEducationService = new DoctorEducationService(AppDataSource);
 export default doctorEducationService;

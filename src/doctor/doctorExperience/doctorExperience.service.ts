@@ -1,22 +1,28 @@
 import 'express-async-errors';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../../db';
-import { Doctor } from '../../entity/doctor';
-import { DoctorExperience } from '../../entity/doctorExperience';
+import { Doctor } from '../../entities/doctor';
+import { DoctorExperience } from '../../entities/doctorExperience';
 import AppError from '../../utils/appError';
 
-const doctorExperienceRepository =
-  AppDataSource.getRepository(DoctorExperience);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class DoctorExperienceService {
+  private doctorExperienceRepository;
+  private doctorRepository;
 
-class DoctorExperienceService {
-  create = async (
+  constructor(private dataSource: DataSource) {
+    this.doctorExperienceRepository =
+      this.dataSource.getRepository(DoctorExperience);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public create = async (
     doctor: any,
     hospitalName: string,
     from: Date,
     to: Date,
     designation: string
   ) => {
-    const newExperience = doctorExperienceRepository.create({
+    const newExperience = this.doctorExperienceRepository.create({
       doctor: { id: doctor },
       hospitalName,
       from,
@@ -24,7 +30,9 @@ class DoctorExperienceService {
       designation,
     });
 
-    const doctorId = await doctorRepository.findOne({ where: { id: doctor } });
+    const doctorId = await this.doctorRepository.findOne({
+      where: { id: doctor },
+    });
 
     if (!doctorId) {
       throw new AppError('doctor not found', 404);
@@ -35,23 +43,23 @@ class DoctorExperienceService {
     return newExperience;
   };
 
-  getAll = async () => {
-    const data = await doctorExperienceRepository.find({
+  public getAll = async () => {
+    const data = await this.doctorExperienceRepository.find({
       relations: ['doctor'],
     });
     return data;
   };
 
-  getAllExperience = async (doctor: any) => {
-    const data = await doctorExperienceRepository.find({
+  public getAllExperience = async (doctor: any) => {
+    const data = await this.doctorExperienceRepository.find({
       where: { doctor: { id: doctor } },
       relations: ['doctor'],
     });
     return data;
   };
 
-  getOne = async (id: any) => {
-    const data = await doctorExperienceRepository.findOne({
+  public getOne = async (id: any) => {
+    const data = await this.doctorExperienceRepository.findOne({
       where: { id },
       relations: ['doctor'],
     });
@@ -63,7 +71,7 @@ class DoctorExperienceService {
     return data;
   };
 
-  updateOne = async (
+  public updateOne = async (
     id: any,
     doctor: any,
     hospitalName?: string,
@@ -71,7 +79,7 @@ class DoctorExperienceService {
     to?: Date,
     designation?: string
   ) => {
-    const data = await doctorExperienceRepository.findOne({
+    const data = await this.doctorExperienceRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -90,8 +98,8 @@ class DoctorExperienceService {
     return data;
   };
 
-  deleteOne = async (id: any, doctor: any) => {
-    const data = await doctorExperienceRepository.findOne({
+  public deleteOne = async (id: any, doctor: any) => {
+    const data = await this.doctorExperienceRepository.findOne({
       where: { id, doctor: { id: doctor } },
       relations: ['doctor'],
     });
@@ -104,5 +112,5 @@ class DoctorExperienceService {
   };
 }
 
-const doctorExperienceService = new DoctorExperienceService();
+const doctorExperienceService = new DoctorExperienceService(AppDataSource);
 export default doctorExperienceService;

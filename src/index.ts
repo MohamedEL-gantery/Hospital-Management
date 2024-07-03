@@ -1,3 +1,4 @@
+import { Application } from 'express';
 import authRouter from './auth/auth.routes';
 import contactUsRouter from './contactus/contactUs.routes';
 import userRouter from './user/user.routes';
@@ -15,7 +16,7 @@ import reviewRouter from './review/review.routes';
 import cartRouter from './cart/car.routes';
 import bookingRouter from './booking/booking.routes';
 
-const mountRoutes = (app: any) => {
+const mountRoutes = (app: Application) => {
   app.use('/api/v1/contactus', contactUsRouter);
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', userRouter);

@@ -1,63 +1,69 @@
 import crypto from 'crypto';
 import 'express-async-errors';
 import bcrypt from 'bcryptjs';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { User } from '../entity/user';
-import { Doctor } from '../entity/doctor';
+import { User } from '../entities/user';
+import { Doctor } from '../entities/doctor';
 import AppError from '../utils/appError';
 import { Roles } from '../enum/roles';
 import sendEmail from '../utils/sendEmail';
 import { MoreThan } from 'typeorm';
 
-const userRepository = AppDataSource.getRepository(User);
-const doctorRepository = AppDataSource.getRepository(Doctor);
+export class AuthService {
+  private userRepository;
+  private doctorRepository;
 
-class AuthService {
-  userSignup = async (name: string, email: string, password: string) => {
-    const newUser = userRepository.create({
+  constructor(private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public userSignup = async (name: string, email: string, password: string) => {
+    const newUser = this.userRepository.create({
       name,
       email,
       password: await bcrypt.hash(password, 12),
     });
 
-    const userFound = await userRepository.findOne({
+    const userFound = await this.userRepository.findOne({
       where: { email },
     });
     if (userFound) {
       throw new AppError('User Already Exists', 400);
     }
 
-    await userRepository.save(newUser);
+    await this.userRepository.save(newUser);
 
     return newUser;
   };
 
-  doctorSignup = async (
+  public doctorSignup = async (
     name: string,
     email: string,
     password: string,
     phoneNumber: string
   ) => {
-    const newDoctor = doctorRepository.create({
+    const newDoctor = this.doctorRepository.create({
       name,
       email,
       password: await bcrypt.hash(password, 12),
       phoneNumber,
     });
 
-    const doctorFound = await doctorRepository.findOne({
+    const doctorFound = await this.doctorRepository.findOne({
       where: { email },
     });
     if (doctorFound) {
       throw new AppError('Doctor Already Exists', 400);
     }
 
-    await doctorRepository.save(newDoctor);
+    await this.doctorRepository.save(newDoctor);
 
     return newDoctor;
   };
 
-  userLogin = async (
+  public userLogin = async (
     password: string,
     email?: string,
     phoneNumber?: string
@@ -71,11 +77,11 @@ class AuthService {
 
     let user;
     if (email) {
-      user = await userRepository.findOne({ where: { email } });
+      user = await this.userRepository.findOne({ where: { email } });
     }
 
     if (phoneNumber) {
-      user = await userRepository.findOne({
+      user = await this.userRepository.findOne({
         where: { phoneNumber: phoneNumber },
       });
     }
@@ -94,7 +100,7 @@ class AuthService {
     return user;
   };
 
-  doctorLogin = async (
+  public doctorLogin = async (
     password: string,
     email?: string,
     phoneNumber?: string
@@ -109,11 +115,11 @@ class AuthService {
     let doctor;
 
     if (email) {
-      doctor = await doctorRepository.findOne({ where: { email } });
+      doctor = await this.doctorRepository.findOne({ where: { email } });
     }
 
     if (phoneNumber) {
-      doctor = await doctorRepository.findOne({
+      doctor = await this.doctorRepository.findOne({
         where: { phoneNumber: phoneNumber },
       });
     }
@@ -132,8 +138,8 @@ class AuthService {
     return doctor;
   };
 
-  adminLogin = async (email: string, password: string) => {
-    const admin = await userRepository.findOne({ where: { email } });
+  public adminLogin = async (email: string, password: string) => {
+    const admin = await this.userRepository.findOne({ where: { email } });
 
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
       throw new AppError('invalid email or password', 401);
@@ -149,8 +155,8 @@ class AuthService {
     return admin;
   };
 
-  forgetUserPassword = async (email: string) => {
-    const user = await userRepository.findOne({ where: { email } });
+  public forgetUserPassword = async (email: string) => {
+    const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
       throw new AppError('Email not found', 404);
@@ -186,13 +192,13 @@ class AuthService {
     }
   };
 
-  verifyUserResetCode = async (restCode: string) => {
+  public verifyUserResetCode = async (restCode: string) => {
     const hashedResetCode = crypto
       .createHash('sha256')
       .update(restCode)
       .digest('hex');
 
-    const user = await userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {
         passwordResetCode: hashedResetCode,
         passwordResetExpires: MoreThan(new Date()),
@@ -211,8 +217,8 @@ class AuthService {
     return user;
   };
 
-  resetUserPassword = async (id: string, password: string) => {
-    const user = await userRepository.findOne({ where: { id } });
+  public resetUserPassword = async (id: string, password: string) => {
+    const user = await this.userRepository.findOne({ where: { id } });
 
     if (user) {
       if (user.passwordResetVerified !== true && user.countPassword !== 0) {
@@ -229,8 +235,8 @@ class AuthService {
     }
   };
 
-  forgetDoctorPassword = async (email: string) => {
-    const doctor = await doctorRepository.findOne({ where: { email } });
+  public forgetDoctorPassword = async (email: string) => {
+    const doctor = await this.doctorRepository.findOne({ where: { email } });
 
     if (!doctor) {
       throw new AppError('Email not found', 404);
@@ -266,13 +272,13 @@ class AuthService {
     }
   };
 
-  verifyDoctorResetCode = async (restCode: string) => {
+  public verifyDoctorResetCode = async (restCode: string) => {
     const hashedResetCode = crypto
       .createHash('sha256')
       .update(restCode)
       .digest('hex');
 
-    const doctor = await doctorRepository.findOne({
+    const doctor = await this.doctorRepository.findOne({
       where: {
         passwordResetCode: hashedResetCode,
         passwordResetExpires: MoreThan(new Date()),
@@ -291,8 +297,8 @@ class AuthService {
     return doctor;
   };
 
-  resetDoctorPassword = async (id: string, password: string) => {
-    const doctor = await doctorRepository.findOne({ where: { id } });
+  public resetDoctorPassword = async (id: string, password: string) => {
+    const doctor = await this.doctorRepository.findOne({ where: { id } });
 
     if (doctor) {
       if (doctor.passwordResetVerified !== true && doctor.countPassword !== 0) {
@@ -309,12 +315,12 @@ class AuthService {
     }
   };
 
-  updateUserPassword = async (
+  public updateUserPassword = async (
     id: string,
     passwordCurrent: string,
     password: string
   ) => {
-    const user = await userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id } });
 
     if (user) {
       if (!(await bcrypt.compare(passwordCurrent, user.password))) {
@@ -330,12 +336,12 @@ class AuthService {
     }
   };
 
-  updateDoctorPassword = async (
+  public updateDoctorPassword = async (
     id: string,
     passwordCurrent: string,
     password: string
   ) => {
-    const doctor = await doctorRepository.findOne({ where: { id } });
+    const doctor = await this.doctorRepository.findOne({ where: { id } });
 
     if (doctor) {
       if (!(await bcrypt.compare(passwordCurrent, doctor.password))) {
@@ -352,5 +358,5 @@ class AuthService {
   };
 }
 
-const authService = new AuthService();
+const authService = new AuthService(AppDataSource);
 export default authService;

@@ -1,17 +1,24 @@
 import 'express-async-errors';
 import { AppDataSource } from '../db';
-import { Cart } from '../entity/cart';
-import { Calender } from '../entity/doctorCalender';
-import { User } from '../entity/user';
+import { Cart } from '../entities/cart';
+import { Calender } from '../entities/doctorCalender';
+import { User } from '../entities/user';
 import AppError from '../utils/appError';
+import { DataSource } from 'typeorm';
 
-const userRepository = AppDataSource.getRepository(User);
-const calenderRepository = AppDataSource.getRepository(Calender);
-const cartRepository = AppDataSource.getRepository(Cart);
+export class CartService {
+  private userRepository;
+  private calenderRepository;
+  private cartRepository;
 
-class CartService {
-  create = async (calender: any, user: any) => {
-    const calenderExist = await calenderRepository.findOne({
+  constructor(private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.calenderRepository = this.dataSource.getRepository(Calender);
+    this.cartRepository = this.dataSource.getRepository(Cart);
+  }
+
+  public create = async (calender: any, user: any) => {
+    const calenderExist = await this.calenderRepository.findOne({
       where: { id: calender },
       relations: ['doctor'],
     });
@@ -20,13 +27,15 @@ class CartService {
       throw new AppError('Cannot find calender', 400);
     }
 
-    const userExist = await userRepository.findOne({ where: { id: user } });
+    const userExist = await this.userRepository.findOne({
+      where: { id: user },
+    });
 
     if (!userExist) {
       throw new AppError('Cannot find user', 400);
     }
 
-    const cartExist = await cartRepository.findOne({
+    const cartExist = await this.cartRepository.findOne({
       where: { calender: { id: calender }, user: { id: user } },
     });
 
@@ -34,7 +43,7 @@ class CartService {
       throw new AppError('Cart already exist', 400);
     }
 
-    const newCart = cartRepository.create({
+    const newCart = this.cartRepository.create({
       calender: calender,
       user: user,
       doctor: calenderExist.doctor.id,
@@ -46,8 +55,8 @@ class CartService {
     return newCart;
   };
 
-  getAll = async (user: any) => {
-    const data = await cartRepository.find({
+  public getAll = async (user: any) => {
+    const data = await this.cartRepository.find({
       where: { user: { id: user } },
       relations: ['calender.doctor'],
     });
@@ -59,8 +68,8 @@ class CartService {
     return data;
   };
 
-  deleteOne = async (id: any, user: any) => {
-    const data = await cartRepository.findOne({
+  public deleteOne = async (id: any, user: any) => {
+    const data = await this.cartRepository.findOne({
       where: { id, user: { id: user } },
     });
 
@@ -72,6 +81,6 @@ class CartService {
   };
 }
 
-const cartService = new CartService();
+const cartService = new CartService(AppDataSource);
 
 export default cartService;

@@ -1,18 +1,24 @@
 import 'express-async-errors';
 import { AppDataSource } from '../db';
-import { Doctor } from '../entity/doctor';
-import { Category } from '../entity/category';
+import { Doctor } from '../entities/doctor';
+import { Category } from '../entities/category';
+import { DataSource } from 'typeorm';
 import AppError from '../utils/appError';
 import { Gender } from '../enum/gender';
 import { Pricing } from '../enum/pricing';
 import { Like } from 'typeorm';
 
-const doctorRepository = AppDataSource.getRepository(Doctor);
-const categoryRepository = AppDataSource.getRepository(Category);
+export class DoctorService {
+  private doctorRepository;
+  private categoryRepository;
 
-class DoctorService {
-  getAll = async () => {
-    const doctors = await doctorRepository.find({
+  constructor(private dataSource: DataSource) {
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+    this.categoryRepository = this.dataSource.getRepository(Category);
+  }
+
+  public getAll = async () => {
+    const doctors = await this.doctorRepository.find({
       relations: [
         'category',
         'blogs',
@@ -27,8 +33,8 @@ class DoctorService {
     return doctors;
   };
 
-  getOne = async (id: any) => {
-    const doctor = await doctorRepository.findOne({
+  public getOne = async (id: any) => {
+    const doctor = await this.doctorRepository.findOne({
       where: { id },
       relations: [
         'category',
@@ -49,7 +55,7 @@ class DoctorService {
     return doctor;
   };
 
-  updateOne = async (
+  public updateOne = async (
     id: any,
     name?: string,
     email?: string,
@@ -71,7 +77,7 @@ class DoctorService {
     linkedinUrl?: string,
     category?: any
   ) => {
-    const doctor = await doctorRepository.findOne({ where: { id } });
+    const doctor = await this.doctorRepository.findOne({ where: { id } });
 
     if (!doctor) {
       throw new AppError('doctor not found', 404);
@@ -98,7 +104,7 @@ class DoctorService {
       (doctor.category = category || doctor.category);
 
     if (category) {
-      const categoryExist = await categoryRepository.findOne({
+      const categoryExist = await this.categoryRepository.findOne({
         where: { id: category },
       });
 
@@ -112,8 +118,8 @@ class DoctorService {
     return doctor;
   };
 
-  deleteOne = async (id: any) => {
-    const doctor = await doctorRepository.findOne({ where: { id } });
+  public deleteOne = async (id: any) => {
+    const doctor = await this.doctorRepository.findOne({ where: { id } });
 
     if (!doctor) {
       throw new AppError('doctor not found', 404);
@@ -122,8 +128,8 @@ class DoctorService {
     await doctor.remove();
   };
 
-  search = async (name: string) => {
-    const doctor = await doctorRepository.find({
+  public search = async (name: string) => {
+    const doctor = await this.doctorRepository.find({
       where: { name: Like(`%${name}%`) },
     });
 
@@ -135,5 +141,5 @@ class DoctorService {
   };
 }
 
-const doctorService = new DoctorService();
+const doctorService = new DoctorService(AppDataSource);
 export default doctorService;

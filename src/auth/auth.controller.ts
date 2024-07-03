@@ -1,22 +1,31 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
+import { DataSource } from 'typeorm';
 import { AppDataSource } from '../db';
-import { User } from '../entity/user';
-import { Doctor } from '../entity/doctor';
-import authService from './auth.service';
+import { User } from '../entities/user';
+import { Doctor } from '../entities/doctor';
+import authService, { AuthService } from './auth.service';
 import { sendToken, signToken } from '../utils/signToken';
 import AppError from '../utils/appError';
 import CustomRequest from './../interfaces/customRequest';
 
-const userRepository = AppDataSource.getRepository(User);
-const doctorRepository = AppDataSource.getRepository(Doctor);
-
 class AuthController {
-  signUpUser = asyncHandler(
+  private userRepository;
+  private doctorRepository;
+
+  constructor(
+    private dataSource: DataSource,
+    private readonly authService: AuthService
+  ) {
+    this.userRepository = this.dataSource.getRepository(User);
+    this.doctorRepository = this.dataSource.getRepository(Doctor);
+  }
+
+  public signUpUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { name, email, password } = req.body;
 
-      await authService.userSignup(name, email, password);
+      await this.authService.userSignup(name, email, password);
 
       res.status(201).json({
         status: 'success',
@@ -25,11 +34,11 @@ class AuthController {
     }
   );
 
-  signUpDoctor = asyncHandler(
+  public signUpDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { name, email, password, phoneNumber } = req.body;
 
-      await authService.doctorSignup(name, email, password, phoneNumber);
+      await this.authService.doctorSignup(name, email, password, phoneNumber);
 
       res.status(201).json({
         status: 'success',
@@ -38,7 +47,7 @@ class AuthController {
     }
   );
 
-  loginUser = asyncHandler(
+  public loginUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { password, email, phoneNumber } = req.body;
 
@@ -52,12 +61,16 @@ class AuthController {
         );
       }
 
-      const user = await authService.userLogin(password, email, phoneNumber);
+      const user = await this.authService.userLogin(
+        password,
+        email,
+        phoneNumber
+      );
       sendToken(user, 200, req, res);
     }
   );
 
-  loginDoctor = asyncHandler(
+  public loginDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { password, email, phoneNumber } = req.body;
 
@@ -71,7 +84,7 @@ class AuthController {
         );
       }
 
-      const doctor = await authService.doctorLogin(
+      const doctor = await this.authService.doctorLogin(
         password,
         email,
         phoneNumber
@@ -80,24 +93,24 @@ class AuthController {
     }
   );
 
-  loginAdmin = asyncHandler(
+  public loginAdmin = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { password, email } = req.body;
       if (!email || !password) {
         return next(new AppError('Please enter your email or password', 400));
       }
 
-      const admin = await authService.adminLogin(email, password);
+      const admin = await this.authService.adminLogin(email, password);
 
       sendToken(admin, 200, req, res);
     }
   );
 
-  forgetPasswordUser = asyncHandler(
+  public forgetPasswordUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { email } = req.body;
 
-      const user = await authService.forgetUserPassword(email);
+      const user = await this.authService.forgetUserPassword(email);
 
       const token = signToken({ id: user.id });
 
@@ -109,11 +122,11 @@ class AuthController {
     }
   );
 
-  verifyResetCodeUser = asyncHandler(
+  public verifyResetCodeUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { resetCode } = req.body;
 
-      const userCount = await userRepository.findOne({
+      const userCount = await this.userRepository.findOne({
         where: { id: (req as CustomRequest).user.id },
       });
 
@@ -132,7 +145,7 @@ class AuthController {
         }
       }
 
-      const user = await authService.verifyUserResetCode(resetCode);
+      const user = await this.authService.verifyUserResetCode(resetCode);
 
       const token = signToken({ id: user.id });
 
@@ -144,9 +157,9 @@ class AuthController {
     }
   );
 
-  resetPasswordUser = asyncHandler(
+  public resetPasswordUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const user = await userRepository.findOne({
+      const user = await this.userRepository.findOne({
         where: { id: (req as CustomRequest).user.id },
       });
 
@@ -156,7 +169,7 @@ class AuthController {
 
       const { password } = req.body;
 
-      await authService.resetUserPassword(user.id, password);
+      await this.authService.resetUserPassword(user.id, password);
 
       res.status(200).json({
         status: 'success',
@@ -165,11 +178,11 @@ class AuthController {
     }
   );
 
-  forgetPasswordDoctor = asyncHandler(
+  public forgetPasswordDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { email } = req.body;
 
-      const doctor = await authService.forgetDoctorPassword(email);
+      const doctor = await this.authService.forgetDoctorPassword(email);
 
       const token = signToken({ id: doctor.id });
 
@@ -181,11 +194,11 @@ class AuthController {
     }
   );
 
-  verifyResetCodeDoctor = asyncHandler(
+  public verifyResetCodeDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { resetCode } = req.body;
 
-      const doctorCount = await doctorRepository.findOne({
+      const doctorCount = await this.doctorRepository.findOne({
         where: { id: (req as CustomRequest).doctor.id },
       });
 
@@ -204,7 +217,7 @@ class AuthController {
         }
       }
 
-      const doctor = await authService.verifyDoctorResetCode(resetCode);
+      const doctor = await this.authService.verifyDoctorResetCode(resetCode);
 
       const token = signToken({ id: doctor.id });
 
@@ -216,9 +229,9 @@ class AuthController {
     }
   );
 
-  resetPasswordDoctor = asyncHandler(
+  public resetPasswordDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const doctor = await doctorRepository.findOne({
+      const doctor = await this.doctorRepository.findOne({
         where: { id: (req as CustomRequest).doctor.id },
       });
 
@@ -228,7 +241,7 @@ class AuthController {
 
       const { password } = req.body;
 
-      await authService.resetDoctorPassword(doctor.id, password);
+      await this.authService.resetDoctorPassword(doctor.id, password);
 
       res.status(200).json({
         status: 'success',
@@ -237,9 +250,9 @@ class AuthController {
     }
   );
 
-  updatePasswordUser = asyncHandler(
+  public updatePasswordUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const user = await userRepository.findOne({
+      const user = await this.userRepository.findOne({
         where: { id: (req as CustomRequest).user.id },
       });
 
@@ -249,7 +262,7 @@ class AuthController {
 
       const { passwordCurrent, password } = req.body;
 
-      const userUpdate = await authService.updateUserPassword(
+      const userUpdate = await this.authService.updateUserPassword(
         user.id,
         passwordCurrent,
         password
@@ -259,9 +272,9 @@ class AuthController {
     }
   );
 
-  updatePasswordDoctor = asyncHandler(
+  public updatePasswordDoctor = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const doctor = await doctorRepository.findOne({
+      const doctor = await this.doctorRepository.findOne({
         where: { id: (req as CustomRequest).doctor.id },
       });
 
@@ -271,7 +284,7 @@ class AuthController {
 
       const { passwordCurrent, password } = req.body;
 
-      const doctorUpdate = await authService.updateDoctorPassword(
+      const doctorUpdate = await this.authService.updateDoctorPassword(
         doctor.id,
         passwordCurrent,
         password
@@ -282,5 +295,5 @@ class AuthController {
   );
 }
 
-const authController = new AuthController();
+const authController = new AuthController(AppDataSource, authService);
 export default authController;

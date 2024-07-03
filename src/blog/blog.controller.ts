@@ -2,12 +2,14 @@ import path from 'path';
 import fs from 'fs';
 import asyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import blogService from './blog.service';
+import blogService, { BlogService } from './blog.service';
 import CustomRequest from './../interfaces/customRequest';
 import { cloudinaryUploadSingleImag } from '../utils/cloudinary';
 
 class BlogController {
-  createBlog = asyncHandler(
+  constructor(private readonly blogService: BlogService) {}
+
+  public createBlog = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -27,7 +29,7 @@ class BlogController {
       if (!req.body.doctor) req.body.doctor = (req as CustomRequest).doctor.id;
 
       const { doctor, category, text } = req.body;
-      const blog = await blogService.create(doctor, text, photo, category);
+      const blog = await this.blogService.create(doctor, text, photo, category);
 
       res.status(201).json({
         status: 'success',
@@ -36,9 +38,9 @@ class BlogController {
     }
   );
 
-  getAllBlog = asyncHandler(
+  public getAllBlog = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const blogs = await blogService.getAll();
+      const blogs = await this.blogService.getAll();
 
       res.status(200).json({
         status: 'success',
@@ -48,9 +50,9 @@ class BlogController {
     }
   );
 
-  getOneBlog = asyncHandler(
+  public getOneBlog = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const blog = await blogService.getOne(req.params.id);
+      const blog = await this.blogService.getOne(req.params.id);
 
       res.status(200).json({
         status: 'success',
@@ -58,7 +60,8 @@ class BlogController {
       });
     }
   );
-  updateOneBlog = asyncHandler(
+
+  public updateOneBlog = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let photo;
 
@@ -77,7 +80,7 @@ class BlogController {
 
       const { text, category } = req.body;
 
-      const blog = await blogService.updateOne(
+      const blog = await this.blogService.updateOne(
         req.params.id,
         (req as CustomRequest).doctor.id,
         text,
@@ -92,9 +95,9 @@ class BlogController {
     }
   );
 
-  deleteOneBlog = asyncHandler(
+  public deleteOneBlog = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      await blogService.deleteOne(
+      await this.blogService.deleteOne(
         req.params.id,
         (req as CustomRequest).doctor.id
       );
@@ -107,5 +110,5 @@ class BlogController {
   );
 }
 
-const blogController = new BlogController();
+const blogController = new BlogController(blogService);
 export default blogController;
